@@ -44,16 +44,16 @@ use vars qw($mysql_database_oreon $mysql_database_ods $mysql_host $mysql_user $m
 
 $EXCLUDESTR = "";
 
-$LOG = "@INSTALL_DIR_CENTREON@/log/dynamicTrap.log";
+$LOG = "/var/log/dynamicTrap.log";
 
-$NAGIOSCMD = "@NAGIOS_VAR@/rw/nagios.cmd";
-$CECORECMD = "@CENTREON_VARLIB@/centcore.cmd";
+$NAGIOSCMD = "/usr/local/nagios/var/rw/nagios.cmd";
+$CECORECMD = "/var/lib/centreon/centcore.cmd";
 
-$LOCKDIR = "@CENTREON_VARLIB@/tmp/";
-$CACHEDIR = "@CENTREON_VARLIB@/cache/";
+$LOCKDIR = "/usr/local/centreon/tmp/";
+$CACHEDIR = "/usr/local/centreon/cache/";
 $MAXDATAAGE = 5;
 
-require "@CENTREON_ETC@/conf.pm";
+require "/etc/centreon/conf.pm";
 
 # log files management function
 sub writeLogFile($){
@@ -76,6 +76,7 @@ sub writeLogFile($){
 my $host_name = $ARGV[0];
 my $output = $ARGV[2];
 my $timeRequest = $ARGV[1];
+my $macros = $ARGV[3];
 
 foreach (split(',', $EXCLUDESTR)) {
     if ($output =~ /$_/) {
@@ -239,6 +240,18 @@ foreach my $str (@slotList) {
 		    writeLogFile("Cannot Write external command for local nagios");
 		}
 	    }
+	    
+	    my @tab = split(/\|/, $macros);
+	    foreach my $string (@tab) {		
+		my @tab2 = split(/\=/, $string);
+		updateMacro($host_name, $str, $data_poller->{'localhost'}, $tab2[0], $tab2[1], $timeRequest);
+		undef(@tab2);
+	    }
+	    undef(@tab);
+
+	    #updateMacro($host_name, $str, $data_poller->{'localhost'}, "CCSS", $ccss, $timeRequest);
+	    #updateMacro($host_name, $str, $data_poller->{'localhost'}, "LEVEL", $level, $timeRequest);
+
 	    undef($fileList[$y]);
 	    undef($timeList[$y]);
 	    undef($outputList[$y]);
@@ -308,6 +321,23 @@ if ($count) {
 }
 
 # Declare functions
+# host / service / localhost / macro / var / time / $poller
+sub updateMacro($$$$$$) {
+    my $externalCMD = "[".$_[5]."] CHANGE_CUSTOM_SVC_VAR;".$_[0].";".$_[1].";".$_[3].";".$_[4];
+    if ($_[2] == 0) {
+	my $externalCMD = "EXTERNALCMD:".$_[6].":".$externalCMD;
+	writeLogFile("Send external command : $externalCMD");
+	if (system("echo '$externalCMD' >> $CECORECMD")) {
+	    writeLogFile("Cannot Write external command for centcore");
+	}
+    } else {
+	writeLogFile("Send external command in local poller : $externalCMD");
+	if (system("echo '$externalCMD' >> $NAGIOSCMD")) {
+	    writeLogFile("Cannot Write external command for local nagios");
+	}
+    }
+}
+
 sub getHostID($$) {
     my $con = $_[1];
     
