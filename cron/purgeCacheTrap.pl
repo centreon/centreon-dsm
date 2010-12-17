@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 ################################################################################
-# Copyright 2005-2009 MERETHIS
+# Copyright 2005-2010 MERETHIS
 # Centreon is developped by : Julien Mathis and Romain Le Merlus under
 # GPL Licence 2.0.
 # 
@@ -31,8 +31,8 @@
 # 
 # For more information : contact@centreon.com
 # 
-# SVN : $URL: http://svn.centreon.com/branches/centreon-2.1/lib/purge.pm $
-# SVN : $Id: purge.pm 10097 2010-02-25 17:34:45Z jmathis $
+# SVN : $URL:$
+# SVN : $Id:$
 #
 ####################################################################################
 
@@ -42,18 +42,18 @@ use File::Path qw(mkpath);
 use Time::HiRes qw(usleep ualarm gettimeofday tv_interval nanosleep clock_gettime clock_getres clock_nanosleep clock stat);
 use vars qw($mysql_database_oreon $mysql_database_ods $mysql_host $mysql_user $mysql_passwd $ndo_conf $debug $LOG $NAGIOSCMD $CECORECMD $LOCKDIR $MAXDATAAGE $CACHEDIR);
 
-$LOG = "@INSTALL_DIR_CENTREON@/centreon/log/dynamicTrap.log";
+$LOG = "@CENTREON_LOG@/dynamicTrap.log";
 
-$NAGIOSCMD = "@NAGIOS_VAR@/rw/nagios.cmd";
+$NAGIOSCMD = "@NAGIOS_CMD@/nagios.cmd";
 $CECORECMD = "@CENTREON_VARLIB@/centcore.cmd";
 
-$LOCKDIR = "@CENTREON_VARLIB@/tmp/";
-$CACHEDIR = "@CENTREON_VARLIB@/cache/";
+$LOCKDIR = "@CENTREON_VARLIB@/centreon-dsm/tmp/";
+$CACHEDIR = "@CENTREON_VARLIB@/centreon-dsm/cache/";
 $MAXDATAAGE = 60;
 
 $debug = 1;
 
-require "@CENTREON_ETC@/conf.pm";
+require "@CENTREON_ETC@conf.pm";
 
 # log files management function
 sub writeLogFile($){

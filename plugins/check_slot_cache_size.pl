@@ -40,10 +40,10 @@ use strict;
 use DBI;
 use vars qw($mysql_database_oreon $mysql_database_ods $mysql_host $mysql_user $mysql_passwd $ndo_conf $LOG $NAGIOSCMD $CECORECMD $LOCKDIR $MAXDATAAGE $CACHEDIR);
 
-require "@CENTREON_ETC@/conf.pm";
+require "@CENTREON_ETC@conf.pm";
 
 # Define cache directory
-$CACHEDIR = "@CENTREON_VARLIB@/cache/";
+$CACHEDIR = "@CENTREON_VARLIB@/centreon-dsm/cache/";
 
 # Set arguments
 my $host_name = $ARGV[0];

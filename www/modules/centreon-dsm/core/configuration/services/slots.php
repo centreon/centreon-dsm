@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005-2009 MERETHIS
+ * Copyright 2005-2010 MERETHIS
  * Centreon is developped by : Julien Mathis and Romain Le Merlus under
  * GPL Licence 2.0.
  * 
@@ -29,7 +29,7 @@
  * exception to your version of the program, but you are not obliged to do so. If you
  * do not wish to do so, delete this exception statement from your version.
  * 
- * For more information : slot@centreon.com
+ * For more information : contact@centreon.com
  * 
  * SVN : $URL$
  * SVN : $Id$
