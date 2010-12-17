@@ -111,12 +111,12 @@ if ($sth2->execute()){
 		"FROM ".$ndo_conf->{'db_prefix'}."servicestatus nss , ".$ndo_conf->{'db_prefix'}."objects no, ".$ndo_conf->{'db_prefix'}."services ns ".
 		"WHERE no.object_id = nss.service_object_id AND no.name1 like '".$host_name."' AND no.object_id = ns.service_object_id ".
 		"AND nss.current_state = 0 AND no.name2 LIKE '".$prefix."%' ORDER BY name2";
-	    $sth2 = $dbh2->prepare($request);
-	    if (!defined($sth2)) {
+	    my $sth3 = $dbh2->prepare($request);
+	    if (!defined($sth3)) {
 		print "ERROR : ".$DBI::errstr."\n";
 	    }
-	    if (!$sth2->execute()){
-		print("Error when getting perfdata file : " . $sth2->errstr . "");
+	    if (!$sth3->execute()){
+		print("Error when getting perfdata file : " . $sth3->errstr . "");
 		return "";
 	    }
 	    
@@ -124,7 +124,7 @@ if ($sth2->execute()){
 	    my $data;
 	    my @slotList;
 	    my $i;
-	    for ($i = 0;$data = $sth2->fetchrow_hashref();$i++) {
+	    for ($i = 0;$data = $sth3->fetchrow_hashref();$i++) {
 	        #    print "SLOT : ".$data->{'name2'}."\n";
 		$slotList[$i] = $data->{'name2'};
 	    }
@@ -270,10 +270,12 @@ if ($sth2->execute()){
 			    $CACHEFILE .= "-".$i;
 			}
 			
-			open (CACHE, ">> ".$CACHEFILE) || print "can't write $LOG: $!";
-			print CACHE $timeList[$y]."\n";
-			print CACHE $outputList[$y];
-			close CACHE;
+			if (!open (CACHE, ">> ".$CACHEFILE) ) {
+				print CACHE $timeList[$y]."\n";
+				print CACHE $outputList[$y];
+				close CACHE;
+			} print "can't write $LOG: $!";
+			
 		    }
 		    $y++;
 		}
