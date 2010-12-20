@@ -97,196 +97,196 @@ if (!defined($sth2)) {
 if ($sth2->execute()){
     my $host;
     while ($host = $sth2->fetchrow_hashref()) {
-	print $host->{'host_name'}."\n" if ($debug == 1);
-	my $host_name = $host->{'host_name'};
-	my $prefix = $host->{'pool_prefix'};
-	
-	# Get module trap on this host
-	if (length($prefix) == 0) {
-	    print "Can get DSM informations $!\n";
-	    exit(1);
-	} else {
-	    # Get slot free
-	    my $request = "SELECT no.name1, no.name2 ".
-		"FROM ".$ndo_conf->{'db_prefix'}."servicestatus nss , ".$ndo_conf->{'db_prefix'}."objects no, ".$ndo_conf->{'db_prefix'}."services ns ".
-		"WHERE no.object_id = nss.service_object_id AND no.name1 like '".$host_name."' AND no.object_id = ns.service_object_id ".
-		"AND nss.current_state = 0 AND no.name2 LIKE '".$prefix."%' ORDER BY name2";
-	    my $sth3 = $dbh2->prepare($request);
-	    if (!defined($sth3)) {
-		print "ERROR : ".$DBI::errstr."\n";
-	    }
-	    if (!$sth3->execute()){
-		print("Error when getting perfdata file : " . $sth3->errstr . "");
-		return "";
-	    }
-	    
-	    # Sort Data
-	    my $data;
-	    my @slotList;
-	    my $i;
-	    for ($i = 0;$data = $sth3->fetchrow_hashref();$i++) {
-	        #    print "SLOT : ".$data->{'name2'}."\n";
-		$slotList[$i] = $data->{'name2'};
-	    }
-	    undef($data);
-
-	    # Check Temporary lock files directory
-	    if (!-d $LOCKDIR){ 
-		writeLogFile("Cannot find temporary lock files directory. I create it : $LOCKDIR.");
-		mkpath($LOCKDIR);
-	    }
-	    
-	    # Purge Slot locks
-	    my @fileList = glob($LOCKDIR."/*");
-	    foreach (@fileList) {
-		my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks) = lstat($_);
-		if (time() - $mtime > $MAXDATAAGE) {
-		    writeLogFile("remove old lock file: ".$_." (normal behavior)");
-		    unlink($_);
-		}
-	    }
-	    undef(@fileList);
-	    
-	    ############################################
-	    # Read cache of results
-
-	    my @timeList;
-	    my @outputList;
-	    my @fileList;
-	    my $t = 0;
-	    my @fileList = glob($CACHEDIR."/".$host_name."-*");
-	    foreach (@fileList) {
-		if (open(FILE, $_)) {
-		    my $filename = $_;
-		    $fileList[$t] = $filename;
-		    my $i = 0;
-		    while (<FILE>) {
-			if ($i == 0) {
-			    $timeList[$t] = $_;
-			    $timeList[$t] =~ s/\n//g;
-			} else {
-			    if (defined($outputList[$t])) {
-				$outputList[$t] = $_; 
-			    } else {
-				$outputList[$t] .= $_; 
-			    }
-			}
-			$i++;
-		    }
-		    close FILE;
-		    writeLogFile("DELETE File : ".$filename);
-		    unlink($filename);
-		}
-		$t++;
-	    }
-	    undef(@fileList);
-
-	    ############################################
-	    # Send data to Nagios serveurs
-	    my $y = 0;
-	    foreach my $str (@slotList) {
-	        #    print "$y : ".$timeList[$y]." |-> ".$str." \n";
-		if (defined($timeList[$y])) {
-		    # Check if I can use this slot
-		    if (length($str) && !-e $LOCKDIR."-$str.lock") {
-			my $timeRequest = $timeList[$y];
-			my $host_id = getHostID($host_name, $dbh);
-			my $data_poller = getHostPoller($host_id, $dbh);
-			my $output = $outputList[$y]; 
-			
-			# Write Tempory lock
-			if (system("touch ".$LOCKDIR."$str.lock")) {
-			    writeLogFile("Cannot write lock file... Be carefull, some data can be loose.");
-			}
-			
-			# Build external command
-			my $externalCMD = "[$timeRequest] PROCESS_SERVICE_CHECK_RESULT;$host_name;$str;2;$output";
-			if ($data_poller->{'localhost'} == 0) {
-			    my $externalCMD = "EXTERNALCMD:".$data_poller->{'id'}.":".$externalCMD;
-			    writeLogFile("Send external command : $externalCMD");
-			    if (system("echo '$externalCMD' >> $CECORECMD")) {
-				writeLogFile("Cannot Write external command for centcore");
-			    }
-			} else {
-			    writeLogFile("Send external command in local poller : $externalCMD");
-			    if (system("echo '$externalCMD' >> $NAGIOSCMD")) {
-				writeLogFile("Cannot Write external command for local nagios");
-			    }
-			}
-			undef($fileList[$y]);
-			undef($timeList[$y]);
-			undef($outputList[$y]);
-			$y++;
-		    } else {
-			if (-e $LOCKDIR."-$str") {
-			    ;#print "$str : already used !";
-			}
-		    }
+		print $host->{'host_name'}."\n" if ($debug == 1);
+		my $host_name = $host->{'host_name'};
+		my $prefix = $host->{'pool_prefix'};
+		
+		# Get module trap on this host
+		if (length($prefix) == 0) {
+			print "Can get DSM informations $!\n";
+			exit(1);
 		} else {
-		    if (defined($fileList[$y]) && length($fileList[$y])) {
-			writeLogFile("Slot system busy... all slots are already in use...");
-			writeLogFile("Add alert in cache...");
-			
-			my $CACHEFILE = $CACHEDIR.$host_name.'-'.time().".cache";
-			if (-e $CACHEFILE) {
-			    my $i = 0;
-			    while (-e $CACHEFILE."-".$i) {
-				$i++;
-			    }
-			    $CACHEFILE .= "-".$i;
+			# Get slot free
+			my $request = "SELECT no.name1, no.name2 ".
+			"FROM ".$ndo_conf->{'db_prefix'}."servicestatus nss , ".$ndo_conf->{'db_prefix'}."objects no, ".$ndo_conf->{'db_prefix'}."services ns ".
+			"WHERE no.object_id = nss.service_object_id AND no.name1 like '".$host_name."' AND no.object_id = ns.service_object_id ".
+			"AND nss.current_state = 0 AND no.name2 LIKE '".$prefix."%' ORDER BY name2";
+			my $sth3 = $dbh2->prepare($request);
+			if (!defined($sth3)) {
+				print "ERROR : ".$DBI::errstr."\n";
+			}
+			if (!$sth3->execute()){
+				print("Error when getting perfdata file : " . $sth3->errstr . "");
+				return "";
 			}
 			
-			open (CACHE, ">> ".$CACHEFILE) || print "can't write $LOG: $!";
-			print CACHE $timeList[$y]."\n";
-			print CACHE $outputList[$y];
-			close CACHE;
-		    }
-		}
-	    }
-	    
-	    my $count = @timeList;
-	    
-	    if ($count) {
-		my $y = 0;
-		foreach my $str (@timeList) { 
-		    if (length($str)) {
-			###########################################
-			# Put data in cache
-			writeLogFile("Slot system busy... all slots are already in use...");
-			writeLogFile("Add alert in cache...");
-			
+			# Sort Data
+			my $data;
+			my @slotList;
+			my $i;
+			for ($i = 0;$data = $sth3->fetchrow_hashref();$i++) {
+				#    print "SLOT : ".$data->{'name2'}."\n";
+				$slotList[$i] = $data->{'name2'};
+			}
+			undef($data);
+
 			# Check Temporary lock files directory
-			if (!-d $CACHEDIR){
-			    writeLogFile("Cannot find temporary cache files directory. I create it : $CACHEDIR.");
-			    mkpath($CACHEDIR);
+			if (!-d $LOCKDIR){ 
+			writeLogFile("Cannot find temporary lock files directory. I create it : $LOCKDIR.");
+			mkpath($LOCKDIR);
 			}
 			
-			my $CACHEFILE = $CACHEDIR.$host_name.'-'.$str.".cache";
-			if (-e $CACHEFILE) {
-			    my $i = 0;
-			    while (-e $CACHEFILE."-".$i) {
+			# Purge Slot locks
+			my @fileList = glob($LOCKDIR."/*");
+			foreach (@fileList) {
+			my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks) = lstat($_);
+			if (time() - $mtime > $MAXDATAAGE) {
+				writeLogFile("remove old lock file: ".$_." (normal behavior)");
+				unlink($_);
+			}
+			}
+			undef(@fileList);
+			
+			############################################
+			# Read cache of results
+
+			my @timeList;
+			my @outputList;
+			my @fileList;
+			my $t = 0;
+			my @fileList = glob($CACHEDIR."/".$host_name."-*");
+			foreach (@fileList) {
+			if (open(FILE, $_)) {
+				my $filename = $_;
+				$fileList[$t] = $filename;
+				my $i = 0;
+				while (<FILE>) {
+				if ($i == 0) {
+					$timeList[$t] = $_;
+					$timeList[$t] =~ s/\n//g;
+				} else {
+					if (defined($outputList[$t])) {
+					$outputList[$t] = $_; 
+					} else {
+					$outputList[$t] .= $_; 
+					}
+				}
 				$i++;
-			    }
-			    $CACHEFILE .= "-".$i;
+				}
+				close FILE;
+				writeLogFile("DELETE File : ".$filename);
+				unlink($filename);
 			}
-			
-			if (!open (CACHE, ">> ".$CACHEFILE) ) {
+			$t++;
+			}
+			undef(@fileList);
+
+			############################################
+			# Send data to Nagios serveurs
+			my $y = 0;
+			foreach my $str (@slotList) {
+				#    print "$y : ".$timeList[$y]." |-> ".$str." \n";
+			if (defined($timeList[$y])) {
+				# Check if I can use this slot
+				if (length($str) && !-e $LOCKDIR."-$str.lock") {
+				my $timeRequest = $timeList[$y];
+				my $host_id = getHostID($host_name, $dbh);
+				my $data_poller = getHostPoller($host_id, $dbh);
+				my $output = $outputList[$y]; 
+				
+				# Write Tempory lock
+				if (system("touch ".$LOCKDIR."$str.lock")) {
+					writeLogFile("Cannot write lock file... Be carefull, some data can be loose.");
+				}
+				
+				# Build external command
+				my $externalCMD = "[$timeRequest] PROCESS_SERVICE_CHECK_RESULT;$host_name;$str;2;$output";
+				if ($data_poller->{'localhost'} == 0) {
+					my $externalCMD = "EXTERNALCMD:".$data_poller->{'id'}.":".$externalCMD;
+					writeLogFile("Send external command : $externalCMD");
+					if (system("echo '$externalCMD' >> $CECORECMD")) {
+					writeLogFile("Cannot Write external command for centcore");
+					}
+				} else {
+					writeLogFile("Send external command in local poller : $externalCMD");
+					if (system("echo '$externalCMD' >> $NAGIOSCMD")) {
+					writeLogFile("Cannot Write external command for local nagios");
+					}
+				}
+				undef($fileList[$y]);
+				undef($timeList[$y]);
+				undef($outputList[$y]);
+				$y++;
+				} else {
+				if (-e $LOCKDIR."-$str") {
+					;#print "$str : already used !";
+				}
+				}
+			} else {
+				if (defined($fileList[$y]) && length($fileList[$y])) {
+				writeLogFile("Slot system busy... all slots are already in use...");
+				writeLogFile("Add alert in cache...");
+				
+				my $CACHEFILE = $CACHEDIR.$host_name.'-'.time().".cache";
+				if (-e $CACHEFILE) {
+					my $i = 0;
+					while (-e $CACHEFILE."-".$i) {
+					$i++;
+					}
+					$CACHEFILE .= "-".$i;
+				}
+				
+				open (CACHE, ">> ".$CACHEFILE) || print "can't write $LOG: $!";
 				print CACHE $timeList[$y]."\n";
 				print CACHE $outputList[$y];
 				close CACHE;
-			} print "can't write $LOG: $!";
+				}
+			}
+			}
 			
-		    }
-		    $y++;
+			my $count = @timeList;
+			
+			if ($count) {
+			my $y = 0;
+			foreach my $str (@timeList) { 
+				if (length($str)) {
+					###########################################
+					# Put data in cache
+					writeLogFile("Slot system busy... all slots are already in use...");
+					writeLogFile("Add alert in cache...");
+				
+					# Check Temporary lock files directory
+					if (!-d $CACHEDIR){
+						writeLogFile("Cannot find temporary cache files directory. I create it : $CACHEDIR.");
+						mkpath($CACHEDIR);
+					}
+				
+					my $CACHEFILE = $CACHEDIR.$host_name.'-'.$str.".cache";
+					if (-e $CACHEFILE) {
+						my $i = 0;
+						while (-e $CACHEFILE."-".$i) {
+							$i++;
+						}
+						$CACHEFILE .= "-".$i;
+					}
+				
+					if (open (CACHE, ">> ".$CACHEFILE) ) {
+						print CACHE $timeList[$y]."\n";
+						print CACHE $outputList[$y];
+						close CACHE;
+					} else {
+						print "can't write $LOG: $!";
+						}
+					}
+					$y++;
+				}
+			} else {
+				exit 0;
+			}
 		}
-	    } else {
-		exit 0;
-	    }
-	}
     }
     exit(0);
 }  
-
 
 # Declare functions
 sub getHostID($$) {
@@ -295,7 +295,7 @@ sub getHostID($$) {
     # Request
     my $sth2 = $con->prepare("SELECT `host_id` FROM `host` WHERE `host_name` = '".$_[0]."' AND `host_register` = '1'");
     if (!$sth2->execute) {
-	writeLogFile("Error:" . $sth2->errstr . "\n");
+		writeLogFile("Error:" . $sth2->errstr . "\n");
     }
     
     my $data_host = $sth2->fetchrow_hashref();
