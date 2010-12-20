@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 ################################################################################
-# Copyright 2005-2009 MERETHIS
+# Copyright 2005-2010 MERETHIS
 # Centreon is developped by : Julien Mathis and Romain Le Merlus under
 # GPL Licence 2.0.
 # 
@@ -31,8 +31,8 @@
 # 
 # For more information : contact@centreon.com
 # 
-# SVN : $URL: http://svn.centreon.com/branches/centreon-2.1/lib/purge.pm $
-# SVN : $Id: purge.pm 10097 2010-02-25 17:34:45Z jmathis $
+# SVN : $URL:$
+# SVN : $Id:$
 #
 ####################################################################################
 
