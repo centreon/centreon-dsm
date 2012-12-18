@@ -62,6 +62,8 @@ if ($@) {
 $debug = $DEBUG_ENABLED;
 $alreadySent = 0;
 
+$debug = 1;
+
 ############################################
 # Set arguments
 writeLogFile("=====================================================", "DD");
@@ -247,11 +249,13 @@ if (@slotList ne 0) {
 			$a++;
 		    }
 		    close(FILE);
-		    
+		   
+		    writeLogFile("ID: ".$id);
+	 
 		    if ($id eq $tmpID) {
 			# print "We find the same id into the data cache. We update the actual slot...\n";
 			$tab[1] = $tmpName;
-		    }
+		    } 
 		}
 		
 		# Build external command
@@ -609,19 +613,11 @@ sub get_slot {
     my $count_services;
     my @list_services;
     my $query_get;
-
-	$id =~ s/\\/\\\\/g;
+	
 
     if ($DBType == 1) {
-	$query_get = "SELECT services.service_id AS varvalue ". 
-					"FROM customvariables, hosts, services " .
-					"WHERE ". 
-						"hosts.host_id = services.host_id AND ".
-						"hosts.host_id = customvariables.host_id AND ".
-						"services.service_id = customvariables.service_id AND ".
-						"(hosts.name = '$host' OR hosts.address = '$host') AND ".
-						"customvariables.name = '" . $MACRO_ID_NAME . "' AND ".
-						"value = '" . $id . "' LIMIT 1";
+	$id =~ s/\\/_/g;
+	$query_get = "SELECT services.service_id AS varvalue FROM customvariables, hosts, services WHERE hosts.host_id = services.host_id AND hosts.host_id = customvariables.host_id AND services.service_id = customvariables.service_id AND (hosts.name LIKE '$host' OR hosts.address LIKE '$host') AND customvariables.name LIKE '" . $MACRO_ID_NAME . "' AND value = '" . $id . "' LIMIT 1";
     } else {
 	$query_get = "SELECT varvalue " .
 	    "FROM " . $ndo_conf->{'db_prefix'} . "customvariablestatus " .
@@ -635,7 +631,7 @@ sub get_slot {
 	exit(1);
     } else {
 	if (!$sth2->execute()){
-	    writeLogFile("Error when getting perfdata file : " . $sth2->errstr . "", "EE");
+	    writeLogFile("Error when getting perfdata file : " . $sth2->errstr . " query=|$query_get|", "EE");
 	    exit(1);
 	}
 	@list_services;
@@ -685,7 +681,7 @@ sub send_command {
 
     # Prepare to send update of Service
     $output =~ s/\'//g;
-    my $externalCMD = "[$timeRequest] PROCESS_SERVICE_CHECK_RESULT;$host_name;$service;$status;$output";
+    my $externalCMD = "[$timeRequest] PROCESS_SERVICE_CHECK_RESULT;$host_name;$service;$status;$output"; # BCT : On peut ajouter |count=xxx
 
     sendExternalCommad($data_poller->{'id'}, $externalCMD);
 
@@ -731,16 +727,20 @@ sub sendExternalCommad($$) {
 sub updateMacro($$$$$$) {
     my ($host, $service, $localhost, $macro, $var, $time, $poller) = @_;
 
-	# Limit the size of the macro value
-	$var = substr($var, 255);
-	
     my $externalCMD = "[".$time."] CHANGE_CUSTOM_SVC_VAR;".$host.";".$service.";".$macro.";".$var;
 
-    my $externalCMD = "EXTERNALCMD:".$poller.":".$externalCMD;
+    if ($localhost == 0) {
+	my $externalCMD = "EXTERNALCMD:".$poller.":".$externalCMD;
 	writeLogFile("Send external command : $externalCMD");
 	if (system("echo '$externalCMD' >> $CECORECMD")) {
 	    writeLogFile("Cannot Write external command for centcore", 'II');
 	}
+    } else {
+	writeLogFile("Send external command in local poller : $externalCMD");
+	if (system("echo '$externalCMD' >> $NAGIOSCMD")) {
+	    writeLogFile("Cannot Write external command for local nagios", 'II');
+	}
+    }
 }
 
 ##################################################
@@ -847,3 +847,4 @@ sub getFreeSlot() {
 }
 
 __END__
+
