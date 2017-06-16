@@ -46,7 +46,7 @@
 	while ($data =& $DBRESULT->fetchRow()) {
 		$tpCache[$data["tp_id"]] = $data["tp_name"];
 	}
-	$DBRESULT->free();
+	$DBRESULT->closeCursor();
 
 	if (isset($search))
 		$DBRESULT = & $pearDB->query("SELECT COUNT(*) FROM mod_dsm_pool WHERE (pool_name LIKE '%".htmlentities($search, ENT_QUOTES)."%' OR pool_description LIKE '%".htmlentities($search, ENT_QUOTES)."%')");
