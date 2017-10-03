@@ -347,6 +347,22 @@ sub delete_alarms {
     $self->insert_history(alarm => $options{alarm});
 }
 
+sub check_cache {
+    my ($self, %options) = @_;
+
+    foreach my $alarm (@{$self->{current_alarms}}) {
+        # 0 = cache_id, 1 = host_id, 2 = ctime, 3 = status, 4 = pool_prefix, 5 = id, 6 = macros, 7 = output
+        if ($alarm->[0] < $options{alarm}->[0] && $alarm->[5] =~ /^$options{alarm}->[5]$/ &&
+            $alarm->[1] == $options{alarm}->[1] && $alarm->[4] =~ /^$options{alarm}->[4]$/ &&
+            $alarm->[3] != $options{alarm}->[3]) {
+            return 0;
+        } elsif ($alarm->[0] >= $options{alarm}->[0]) {
+            last;
+        }
+    }
+    return 1;
+}
+
 sub delete_locks {
     my ($self, %options) = @_;
     
@@ -396,7 +412,9 @@ sub manage_alarm_ok {
         return ;
     }
     if ($status < 0) {
-        $self->delete_alarms(alarm => $options{alarm});
+        if ($self->check_cache(alarm => $options{alarm})) {
+            $self->delete_alarms(alarm => $options{alarm});
+        }
         return ;
     }
     
