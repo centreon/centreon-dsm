@@ -324,7 +324,7 @@
 				$pearDB->query($request);
 
 				$request = "SELECT MAX(service_id) FROM service WHERE service_description = '".$prefix.$suffix."' AND service_activate = '1' AND service_register = '1'";
-				$DBRESULT =& $pearDB->query($request);
+				$DBRESULT = $pearDB->query($request);
 				$service = $DBRESULT->fetchRow();
 				$service_id = $service["MAX(service_id)"];
 
@@ -337,7 +337,7 @@
 				}
 			}
 		} else if ($currentNumber <= $number) {
-			for ($i = 1; $data =& $DBRESULT->fetchRow() ; $i++) {
+			for ($i = 1; $data = $DBRESULT->fetchRow() ; $i++) {
 				$suffix = "";
 				for ($t = $i; $t < 1000 ; $t*=10) {
 					$suffix .= "0";
@@ -366,7 +366,7 @@
 				$pearDB->query($request);
 
 				$request = "SELECT MAX(service_id) FROM service WHERE service_description = '".$prefix.$suffix."' AND service_activate = '1' AND service_register = '1'";
-				$DBRESULT =& $pearDB->query($request);
+				$DBRESULT = $pearDB->query($request);
 				$service = $DBRESULT->fetchRow();
 				$service_id = $service["MAX(service_id)"];
 
@@ -380,7 +380,7 @@
 				$i++;
 			}
 		} else if ($currentNumber > $number) {
-			for ($i = 1; $data =& $DBRESULT->fetchRow() ; $i++) {
+			for ($i = 1; $data = $DBRESULT->fetchRow() ; $i++) {
 				if ($i > $number) {
 					$pearDB->query("DELETE FROM service WHERE service_id = '".$data["service_id"]."'");
 				}
@@ -426,8 +426,8 @@
 		 */
 		generateServices($ret["pool_prefix"], $ret["pool_number"], $ret["pool_host_id"], $ret["pool_service_template_id"], $ret["pool_cmd_id"], $ret["pool_args"], "kjqsddlqkjdqslkjdqsldkj");
 
-		$DBRESULT =& $pearDB->query($rq);
-		$DBRESULT =& $pearDB->query("SELECT MAX(pool_id) FROM mod_dsm_pool");
+		$DBRESULT = $pearDB->query($rq);
+		$DBRESULT = $pearDB->query("SELECT MAX(pool_id) FROM mod_dsm_pool");
 		$pool_id = $DBRESULT->fetchRow();
 
 		if ($ret["pool_activate"]["pool_activate"] == 1) {
@@ -455,7 +455,7 @@
 		/*
 		 * Get Old Prefix
 		 */
-		$DBRESULT =& $pearDB->query("SELECT pool_prefix FROM mod_dsm_pool WHERE pool_id = '$pool_id'");
+		$DBRESULT = $pearDB->query("SELECT pool_prefix FROM mod_dsm_pool WHERE pool_id = '$pool_id'");
 		$data = $DBRESULT->fetchRow();
 		$oldPrefix = $data["pool_prefix"];
 
@@ -489,7 +489,7 @@
 		$rq .=	"pool_service_template_id = ";
 		isset($ret["pool_service_template_id"]) && $ret["pool_service_template_id"] != NULL ? $rq .= "'". $ret["pool_service_template_id"] ."' ": $rq .= "NULL ";
 		$rq .= "WHERE pool_id = '".$pool_id."'";
-		$DBRESULT =& $pearDB->query($rq);
+		$DBRESULT = $pearDB->query($rq);
 
 		generateServices($ret["pool_prefix"], $ret["pool_number"], $ret["pool_host_id"], $ret["pool_service_template_id"], $ret["pool_cmd_id"], $ret["pool_args"], $oldPrefix);
 
@@ -514,7 +514,7 @@
 			return;
 
 		$rq = "DELETE FROM mod_dsm_cg_relation WHERE pool_id = '".$pool_id."'";
-		$DBRESULT =& $pearDB->query($rq);
+		$DBRESULT = $pearDB->query($rq);
 
 		(isset($ret["pool_cg"])) ? $ret = $ret["pool_cg"] : $ret = $form->getSubmitValue("pool_cg");
 
@@ -523,7 +523,7 @@
 			$rq .= "(pool_id, cg_cg_id) ";
 			$rq .= "VALUES ";
 			$rq .= "('".$pool_id."', '".$ret[$i]."')";
-			$DBRESULT =& $pearDB->query($rq);
+			$DBRESULT = $pearDB->query($rq);
 		}
 	}
 
@@ -539,7 +539,7 @@
 			return;
 
 		$rq = "DELETE FROM mod_dsm_cct_relation WHERE pool_id = '".$pool_id."'";
-		$DBRESULT =& $pearDB->query($rq);
+		$DBRESULT = $pearDB->query($rq);
 
 		(isset($ret["pool_cct"])) ? $ret = $ret["pool_cct"] : $ret = $form->getSubmitValue("pool_cct");
 
@@ -548,7 +548,7 @@
 			$rq .= "(pool_id, cct_cct_id) ";
 			$rq .= "VALUES ";
 			$rq .= "('".$pool_id."', '".$ret[$i]."')";
-			$DBRESULT =& $pearDB->query($rq);
+			$DBRESULT = $pearDB->query($rq);
 		}
 	}
 

@@ -42,18 +42,18 @@
 	 * create TP cache
 	 */
 	$tpCache = array();
-	$DBRESULT =& $pearDB->query("SELECT tp_name, tp_id FROM timeperiod");
-	while ($data =& $DBRESULT->fetchRow()) {
+	$DBRESULT = $pearDB->query("SELECT tp_name, tp_id FROM timeperiod");
+	while ($data = $DBRESULT->fetchRow()) {
 		$tpCache[$data["tp_id"]] = $data["tp_name"];
 	}
 	$DBRESULT->free();
 
 	if (isset($search))
-		$DBRESULT = & $pearDB->query("SELECT COUNT(*) FROM mod_dsm_pool WHERE (pool_name LIKE '%".htmlentities($search, ENT_QUOTES)."%' OR pool_description LIKE '%".htmlentities($search, ENT_QUOTES)."%')");
+		$DBRESULT = $pearDB->query("SELECT COUNT(*) FROM mod_dsm_pool WHERE (pool_name LIKE '%".htmlentities($search, ENT_QUOTES)."%' OR pool_description LIKE '%".htmlentities($search, ENT_QUOTES)."%')");
 	else
-		$DBRESULT = & $pearDB->query("SELECT COUNT(*) FROM mod_dsm_pool");
+		$DBRESULT = $pearDB->query("SELECT COUNT(*) FROM mod_dsm_pool");
 
-	$tmp = & $DBRESULT->fetchRow();
+	$tmp = $DBRESULT->fetchRow();
 	$rows = $tmp["COUNT(*)"];
 
 	include("./include/common/checkPagination.php");
@@ -83,11 +83,11 @@
 		$rq = "SELECT pool_id, pool_prefix , pool_name, pool_description, pool_number, pool_activate FROM mod_dsm_pool WHERE (pool_name LIKE '%".htmlentities($search, ENT_QUOTES)."%' OR pool_description LIKE '%".htmlentities($search, ENT_QUOTES)."%') ORDER BY pool_name LIMIT ".$num * $limit.", ".$limit;
 	else
 		$rq = "SELECT pool_id, pool_prefix , pool_name, pool_description, pool_number, pool_activate FROM mod_dsm_pool ORDER BY pool_name LIMIT ".$num * $limit.", ".$limit;
-	$DBRESULT =& $pearDB->query($rq);
+	$DBRESULT = $pearDB->query($rq);
 
 	$search = tidySearchKey($search, $advanced_search);
 
-	$form = new HTML_QuickForm('select_form', 'POST', "?p=".$p);
+	$form = new HTML_QuickFormCustom('select_form', 'POST', "?p=".$p);
 
 	/*
 	 * Different style between each lines
@@ -98,8 +98,8 @@
 	 * Fill a tab with a mutlidimensionnal Array we put in $tpl
 	 */
 	$elemArr = array();
-	for ($i = 0; $contact =& $DBRESULT->fetchRow(); $i++) {
-		$selectedElements =& $form->addElement('checkbox', "select[".$contact['pool_id']."]");
+	for ($i = 0; $contact = $DBRESULT->fetchRow(); $i++) {
+		$selectedElements = $form->addElement('checkbox', "select[".$contact['pool_id']."]");
 		if ($contact["pool_activate"])
 			$moptions = "<a href='main.php?p=".$p."&pool_id=".$contact['pool_id']."&o=u&limit=".$limit."&num=".$num."&search=".$search."'><img src='img/icones/16x16/element_previous.gif' border='0' alt='"._("Disabled")."'></a>&nbsp;&nbsp;";
 		else
@@ -158,11 +158,11 @@
     $form->addElement('select', 'o2', NULL, array(NULL => _("More actions..."), "m" => _("Duplicate"), "d" => _("Delete")), $attrs2);
 	$form->setDefaults(array('o2'  =>  NULL));
 
-	$o1 =& $form->getElement('o1');
+	$o1 = $form->getElement('o1');
 	$o1->setValue(NULL);
 	$o1->setSelected(NULL);
 
-	$o2 =& $form->getElement('o2');
+	$o2 = $form->getElement('o2');
 	$o2->setValue(NULL);
 	$o2->setSelected(NULL);
 
@@ -171,7 +171,7 @@
 	/*
 	 * Fill a tab with a mutlidimensionnal Array we put in $tpl
 	 */
-	$renderer =& new HTML_QuickForm_Renderer_ArraySmarty($tpl);
+	$renderer = new HTML_QuickForm_Renderer_ArraySmarty($tpl);
 	$form->accept($renderer);
 	$tpl->assign('form', $renderer->toArray());
 	$tpl->display("listSlot.ihtml");
