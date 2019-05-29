@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2005-2015 Centreon
+ * Copyright 2005-2019 Centreon
  * Centreon is developped by : Julien Mathis and Romain Le Merlus under
  * GPL Licence 2.0.
  *
@@ -37,29 +37,32 @@ if (!isset($oreon)) {
     exit();
 }
 
-include("./include/common/autoNumLimit.php");
+require "./include/common/autoNumLimit.php";
 
 /*
  * create TP cache
  */
 $tpCache = array();
-$DBRESULT = $pearDB->query("SELECT tp_name, tp_id FROM timeperiod");
-while ($data = $DBRESULT->fetchRow()) {
+$dbResult = $pearDB->query("SELECT tp_name, tp_id FROM timeperiod");
+while ($data = $dbResult->fetch()) {
     $tpCache[$data["tp_id"]] = $data["tp_name"];
 }
-$DBRESULT->closeCursor();
+$dbResult->closeCursor();
 
 if (isset($search)) {
-    $DBRESULT = $pearDB->query("SELECT COUNT(*) FROM mod_dsm_pool WHERE (pool_name LIKE '%" . htmlentities($search,
-            ENT_QUOTES) . "%' OR pool_description LIKE '%" . htmlentities($search, ENT_QUOTES) . "%')");
+    $dbResult = $pearDB->query(
+       "SELECT COUNT(*) FROM mod_dsm_pool WHERE (pool_name LIKE '%" . 
+       htmlentities($search, ENT_QUOTES) . "%' OR pool_description LIKE '%" . 
+       htmlentities($search, ENT_QUOTES) . "%')"
+    );
 } else {
-    $DBRESULT = $pearDB->query("SELECT COUNT(*) FROM mod_dsm_pool");
+    $dbResult = $pearDB->query("SELECT COUNT(*) FROM mod_dsm_pool");
 }
 
-$tmp = $DBRESULT->fetchRow();
+$tmp = $dbResult->fetch();
 $rows = $tmp["COUNT(*)"];
 
-include("./include/common/checkPagination.php");
+require "./include/common/checkPagination.php";
 
 /*
  * Smarty template Init
@@ -83,13 +86,13 @@ $tpl->assign('search', $search);
 $tpl->assign('p', $p);
 
 if ($search) {
-    $rq = "SELECT pool_id, pool_prefix , pool_name, pool_description, pool_number, pool_activate FROM mod_dsm_pool WHERE (pool_name LIKE '%" . htmlentities($search,
-            ENT_QUOTES) . "%' OR pool_description LIKE '%" . htmlentities($search,
-            ENT_QUOTES) . "%') ORDER BY pool_name LIMIT " . $num * $limit . ", " . $limit;
+    $rq = "SELECT pool_id, pool_prefix , pool_name, pool_description, pool_number, pool_activate FROM mod_dsm_pool WHERE (pool_name LIKE '%" .
+       htmlentities($search, ENT_QUOTES) . "%' OR pool_description LIKE '%" . 
+       htmlentities($search, ENT_QUOTES) . "%') ORDER BY pool_name LIMIT " . $num * $limit . ", " . $limit;
 } else {
     $rq = "SELECT pool_id, pool_prefix , pool_name, pool_description, pool_number, pool_activate FROM mod_dsm_pool ORDER BY pool_name LIMIT " . $num * $limit . ", " . $limit;
 }
-$DBRESULT = $pearDB->query($rq);
+$dbResult = $pearDB->query($rq);
 
 $search = tidySearchKey($search, $advanced_search);
 
@@ -104,16 +107,16 @@ $style = "one";
  * Fill a tab with a mutlidimensionnal Array we put in $tpl
  */
 $elemArr = array();
-for ($i = 0; $contact = $DBRESULT->fetchRow(); $i++) {
+for ($i = 0; $contact = $dbResult->fetch(); $i++) {
     $selectedElements = $form->addElement('checkbox', "select[" . $contact['pool_id'] . "]");
     if ($contact["pool_activate"]) {
         $moptions = "<a href='main.php?p=" . $p . "&pool_id=" . $contact['pool_id'] . "&o=u&limit=" . $limit .
-            "&num=" . $num . "&search=" . $search . "'><img src='img/icones/16x16/element_previous.gif' " .
-            "border='0' alt='" . _("Disabled") . "'></a>&nbsp;&nbsp;";
+             "&num=" . $num . "&search=" . $search . "'><img src='img/icones/16x16/element_previous.gif' " .
+             "border='0' alt='" . _("Disabled") . "'></a>&nbsp;&nbsp;";
     } else {
         $moptions = "<a href='main.php?p=" . $p . "&pool_id=" . $contact['pool_id'] . "&o=s&limit=" . $limit .
-            "&num=" . $num . "&search=" . $search . "'><img src='img/icones/16x16/element_next.gif' " .
-            "border='0' alt='" . _("Enabled") . "'></a>&nbsp;&nbsp;";
+             "&num=" . $num . "&search=" . $search . "'><img src='img/icones/16x16/element_next.gif' " .
+             "border='0' alt='" . _("Enabled") . "'></a>&nbsp;&nbsp;";
     }
     $moptions .= "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
     $moptions .= "<input onKeypress=\"if(event.keyCode > 31 && (event.keyCode < 45 || event.keyCode > 57)) " .
@@ -138,12 +141,14 @@ $tpl->assign("elemArr", $elemArr);
 /*
  * Different messages we put in the template
  */
-$tpl->assign('msg', array(
-    "addL" => "?p=" . $p . "&o=a",
-    "addT" => _("Add"),
-    "ldap_importL" => "?p=" . $p . "&o=li",
-    "ldap_importT" => _("LDAP Import")
-));
+$tpl->assign(
+    'msg', array(
+        "addL" => "?p=" . $p . "&o=a",
+        "addT" => _("Add"),
+        "ldap_importL" => "?p=" . $p . "&o=li",
+        "ldap_importT" => _("LDAP Import")
+    )
+);
 
 /*
  * Toolbar select
@@ -159,13 +164,13 @@ $attrs1 = array(
     'onchange' => "javascript: " .
         "if (this.form.elements['o1'].selectedIndex == 1 && confirm('" .
         _("Do you confirm the duplication ?") . "')) {" .
-        " 	setO(this.form.elements['o1'].value); submit();} " .
+        "    setO(this.form.elements['o1'].value); submit();} " .
         "else if (this.form.elements['o1'].selectedIndex == 2 && confirm('" .
         _("Do you confirm the deletion ?") . "')) {" .
-        " 	setO(this.form.elements['o1'].value); submit();} " .
+        "    setO(this.form.elements['o1'].value); submit();} " .
         "else if (this.form.elements['o1'].selectedIndex == 3 || this.form.elements['o1'].selectedIndex == 4 || " .
         "this.form.elements['o1'].selectedIndex == 5){" .
-        " 	setO(this.form.elements['o1'].value); submit();} " .
+        "    setO(this.form.elements['o1'].value); submit();} " .
         "this.form.elements['o1'].selectedIndex = 0"
 );
 $form->addElement(
@@ -173,20 +178,21 @@ $form->addElement(
     'o1',
     null,
     array(null => _("More actions..."), "m" => _("Duplicate"), "d" => _("Delete")),
-    $attrs1);
+    $attrs1
+);
 $form->setDefaults(array('o1' => null));
 
 $attrs2 = array(
     'onchange' => "javascript: " .
         "if (this.form.elements['o2'].selectedIndex == 1 && confirm('" .
         _("Do you confirm the duplication ?") . "')) {" .
-        " 	setO(this.form.elements['o2'].value); submit();} " .
+        "    setO(this.form.elements['o2'].value); submit();} " .
         "else if (this.form.elements['o2'].selectedIndex == 2 && confirm('" .
         _("Do you confirm the deletion ?") . "')) {" .
-        " 	setO(this.form.elements['o2'].value); submit();} " .
+        "    setO(this.form.elements['o2'].value); submit();} " .
         "else if (this.form.elements['o2'].selectedIndex == 3 || this.form.elements['o2'].selectedIndex == 4 || " .
         "this.form.elements['o2'].selectedIndex == 5){" .
-        " 	setO(this.form.elements['o2'].value); submit();} " .
+        "    setO(this.form.elements['o2'].value); submit();} " .
         "this.form.elements['o1'].selectedIndex = 0"
 );
 $form->addElement(
@@ -194,7 +200,8 @@ $form->addElement(
     'o2',
     null,
     array(null => _("More actions..."), "m" => _("Duplicate"), "d" => _("Delete")),
-    $attrs2);
+    $attrs2
+);
 $form->setDefaults(array('o2' => null));
 
 $o1 = $form->getElement('o1');
