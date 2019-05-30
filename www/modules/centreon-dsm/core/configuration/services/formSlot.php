@@ -60,7 +60,7 @@ $dbResult = $pearDB->query("SELECT host_id, host_name FROM host WHERE host_regis
 while ($data = $dbResult->fetch()) {
     $poolHost[$data["host_id"]] = $data["host_name"];
 }
-    
+
 /*
     * pool service_template
     */

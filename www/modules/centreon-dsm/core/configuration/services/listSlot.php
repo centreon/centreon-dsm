@@ -51,8 +51,8 @@ $dbResult->closeCursor();
 
 if (isset($search)) {
     $dbResult = $pearDB->query(
-       "SELECT COUNT(*) FROM mod_dsm_pool WHERE (pool_name LIKE '%" . 
-       htmlentities($search, ENT_QUOTES) . "%' OR pool_description LIKE '%" . 
+       "SELECT COUNT(*) FROM mod_dsm_pool WHERE (pool_name LIKE '%" .
+       htmlentities($search, ENT_QUOTES) . "%' OR pool_description LIKE '%" .
        htmlentities($search, ENT_QUOTES) . "%')"
     );
 } else {
@@ -87,7 +87,7 @@ $tpl->assign('p', $p);
 
 if ($search) {
     $rq = "SELECT pool_id, pool_prefix , pool_name, pool_description, pool_number, pool_activate FROM mod_dsm_pool WHERE (pool_name LIKE '%" .
-       htmlentities($search, ENT_QUOTES) . "%' OR pool_description LIKE '%" . 
+       htmlentities($search, ENT_QUOTES) . "%' OR pool_description LIKE '%" .
        htmlentities($search, ENT_QUOTES) . "%') ORDER BY pool_name LIMIT " . $num * $limit . ", " . $limit;
 } else {
     $rq = "SELECT pool_id, pool_prefix , pool_name, pool_description, pool_number, pool_activate FROM mod_dsm_pool ORDER BY pool_name LIMIT " . $num * $limit . ", " . $limit;

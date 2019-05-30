@@ -67,37 +67,37 @@ case "a":
     include_once $path."formSlot.php"; // Add a slot
     break;
 case "w":
-    include_once $path."formSlot.php"; // Watch a slot 
+    include_once $path."formSlot.php"; // Watch a slot
     break;
-case "c": 
+case "c":
     include_once $path."formSlot.php"; // Modify a slot
     break;
-case"s": 
-    enablePoolInDB($slot_id); 
+case"s":
+    enablePoolInDB($slot_id);
     include_once $path."listSlot.php"; // Activate a slot
     break;
 case "ms":
-    enablePoolInDB(null, isset($select) ? $select : array()); 
-    include_once $path."listSlot.php"; 
+    enablePoolInDB(null, isset($select) ? $select : array());
+    include_once $path."listSlot.php";
     break;
 case "u":
     disablePoolInDB($slot_id);
-    include_once $path."listSlot.php"; // Desactivate a slot 
+    include_once $path."listSlot.php"; // Desactivate a slot
     break;
 case "mu":
     disablePoolInDB(null, isset($select) ? $select : array());
-    include_once $path."listSlot.php"; 
+    include_once $path."listSlot.php";
     break;
 case "m":
     multiplePoolInDB(isset($select) ? $select : array(), $dupNbr);
-    include_once $path."listSlot.php"; // Duplicate n slots 
+    include_once $path."listSlot.php"; // Duplicate n slots
     break;
 case "d":
-    deletePoolInDB(isset($select) ? $select : array()); 
-    include_once $path."listSlot.php"; // Delete n slots 
+    deletePoolInDB(isset($select) ? $select : array());
+    include_once $path."listSlot.php"; // Delete n slots
     break;
 default:
-    include_once $path."listSlot.php"; 
+    include_once $path."listSlot.php";
     break;
 }
 ?>
