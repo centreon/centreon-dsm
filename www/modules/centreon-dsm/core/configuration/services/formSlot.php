@@ -47,7 +47,9 @@ if (($o == "c" || $o == "w") && $slot_id) {
     * Commands
     */
 $Cmds = array();
-$dbResult = $pearDB->query("SELECT command_id, command_name FROM command WHERE command_type = '2' ORDER BY command_name");
+$dbResult = $pearDB->query(
+    "SELECT command_id, command_name FROM command WHERE command_type = '2' ORDER BY command_name"
+);
 while ($Cmd = $dbResult->fetch()) {
     $Cmds[$Cmd["command_id"]] = $Cmd["command_name"];
 }
@@ -65,7 +67,9 @@ while ($data = $dbResult->fetch()) {
     * pool service_template
     */
 $poolST = array(null => null);
-$dbResult = $pearDB->query("SELECT service_id, service_description FROM service WHERE service_register = '0' ORDER BY service_description");
+$dbResult = $pearDB->query(
+    "SELECT service_id, service_description FROM service WHERE service_register = '0' ORDER BY service_description"
+);
 while ($data = $dbResult->fetch()) {
     $data["service_description"] = str_replace("#S#", "/", $data["service_description"]);
     $data["service_description"] = str_replace("#BS#", "\\", $data["service_description"]);
@@ -80,7 +84,8 @@ $attrsTextSmall = array("size"=>"10");
 $attrsText2     = array("size"=>"60");
 $attrsAdvSelect = array("style" => "width: 300px; height: 100px;");
 $attrsTextarea  = array("rows"=>"5", "cols"=>"40");
-$template       = "<table><tr><td>{unselected}</td><td align='center'>{add}<br /><br /><br />{remove}</td><td>{selected}</td></tr></table>";
+$template       = "<table><tr><td>{unselected}</td><td align='center'>{add}<br /><br /><br />" .
+    "{remove}</td><td>{selected}</td></tr></table>";
 
 /*
     * Form begin
@@ -88,9 +93,9 @@ $template       = "<table><tr><td>{unselected}</td><td align='center'>{add}<br /
 $form = new HTML_QuickFormCustom('Form', 'post', "?p=".$p);
 if ($o == "a") {
     $form->addElement('header', 'title', _("Add a pool of services"));
-} else if ($o == "c") {
+} elseif ($o == "c") {
     $form->addElement('header', 'title', _("Modify a pool of services"));
-} else if ($o == "w") {
+} elseif ($o == "w") {
     $form->addElement('header', 'title', _("View a pool of services"));
 }
 
@@ -144,7 +149,8 @@ if (is_array($select)) {
 /**
  * Form Rules
  **/
-function myReplace() {
+function myReplace()
+{
     global $form;
     $ret = $form->getSubmitValues();
     return (str_replace(" ", "_", $ret["pool_name"]));
@@ -157,7 +163,7 @@ if ($o != "mc") {
     $form->addRule('pool_host_id', _("Compulsory Alias"), 'required');
     $form->addRule('pool_prefix', _("Compulsory Alias"), 'required');
     $form->addRule('pool_number', _("Compulsory Alias"), 'required');
-} else if ($o == "mc") {
+} elseif ($o == "mc") {
     if ($form->getSubmitValue("submitMC")) {
         $from_list_menu = false;
     } else {
@@ -175,15 +181,23 @@ $tpl = initSmartyTpl($path, $tpl);
 
 if ($o == "w") {
     // Just watch a pool information
-    $form->addElement("button", "change", _("Modify"), array("class" => "btc bt_default", "onClick" => "javascript:window.location.href='?p=".$p."&o=c&pool_id=".$pool_id."'"));
-        $form->setDefaults($pool);
+    $form->addElement(
+        "button",
+        "change",
+        _("Modify"),
+        array(
+            "class" => "btc bt_default",
+            "onClick" => "javascript:window.location.href='?p=" . $p . "&o=c&pool_id=" . $pool_id . "'"
+        )
+    );
+    $form->setDefaults($pool);
     $form->freeze();
-} else if ($o == "c") {
+} elseif ($o == "c") {
     // Modify a pool information
     $subC = $form->addElement('submit', 'submitC', _("Save"), array("class" => "btc bt_success"));
     $res = $form->addElement('reset', 'reset', _("Reset"), array("class" => "btc bt_default"));
-        $form->setDefaults($pool);
-} else if ($o == "a") {
+    $form->setDefaults($pool);
+} elseif ($o == "a") {
     // Add a pool information
     $subA = $form->addElement('submit', 'submitA', _("Save"), array("class" => "btc bt_success"));
     $res = $form->addElement('reset', 'reset', _("Reset"), array("class" => "btc bt_default"));
@@ -211,12 +225,20 @@ if ($form->validate() && $from_list_menu == false) {
         }
     }
     $o = null;
-    $form->addElement("button", "change", _("Modify"), array("class" => "btc bt_default", "onClick"=>"javascript:window.location.href='?p=".$p."&o=c&pool_id=".$poolObj->getValue()."'"));
+    $form->addElement(
+        "button",
+        "change",
+        _("Modify"),
+        array(
+            "class" => "btc bt_default",
+            "onClick" => "javascript:window.location.href='?p=" . $p . "&o=c&pool_id=" . $poolObj->getValue() . "'"
+        )
+    );
     $form->freeze();
 }
 $action = $form->getSubmitValue("action");
 if ($valid && $action["action"]["action"]) {
-    include $path."listSlot.php";
+    include $path . "listSlot.php";
 } else {
     /*
         * Apply a template definition
@@ -232,9 +254,8 @@ if ($valid && $action["action"]["action"]) {
     $helptext = "";
     include "help.php";
     foreach ($help as $key => $text) {
-        $helptext .= '<span style="display:none" id="help:'.$key.'">'.$text.'</span>'."\n";
+        $helptext .= '<span style="display:none" id="help:' . $key . '">' . $text . '</span>' . "\n";
     }
     $tpl->assign("helptext", $helptext);
     $tpl->display("formSlot.ihtml");
 }
-?>

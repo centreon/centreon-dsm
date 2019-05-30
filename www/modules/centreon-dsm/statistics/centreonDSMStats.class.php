@@ -69,8 +69,8 @@ class CentreonDSMStats
     {
         $data = array();
 
-        $query = "SELECT COUNT(pool_id) AS pools, MIN(pool_number) AS min, 
-            MAX(pool_number) AS max, AVG(pool_number) as avg 
+        $query = "SELECT COUNT(pool_id) AS pools, MIN(pool_number) AS min,
+            MAX(pool_number) AS max, AVG(pool_number) as avg
             FROM mod_dsm_pool";
         $result = $this->db->query($query);
         while ($row = $result->fetch()) {
