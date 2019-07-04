@@ -39,13 +39,13 @@ if (!isset($oreon)) {
 
 $pool = array();
 if (($o == "c" || $o == "w") && $slot_id) {
-    $dbResult = $pearDB->query("SELECT * FROM mod_dsm_pool WHERE pool_id = '".$slot_id."' LIMIT 1");
+    $dbResult = $pearDB->query("SELECT * FROM mod_dsm_pool WHERE pool_id = '" . $slot_id . "' LIMIT 1");
     $pool = $dbResult->fetch();
 }
 
 /*
-    * Commands
-    */
+ * Commands
+ */
 $Cmds = array();
 $dbResult = $pearDB->query(
     "SELECT command_id, command_name FROM command WHERE command_type = '2' ORDER BY command_name"
@@ -55,8 +55,8 @@ while ($Cmd = $dbResult->fetch()) {
 }
 
 /*
-    * pool hosts
-    */
+ * pool hosts
+ */
 $poolHost = array();
 $dbResult = $pearDB->query("SELECT host_id, host_name FROM host WHERE host_register = '1' ORDER BY host_name");
 while ($data = $dbResult->fetch()) {
@@ -64,8 +64,8 @@ while ($data = $dbResult->fetch()) {
 }
 
 /*
-    * pool service_template
-    */
+ * pool service_template
+ */
 $poolST = array(null => null);
 $dbResult = $pearDB->query(
     "SELECT service_id, service_description FROM service WHERE service_register = '0' ORDER BY service_description"
@@ -77,8 +77,8 @@ while ($data = $dbResult->fetch()) {
 }
 
 /*
-    * Template / Style for Quickform input
-    */
+ * Template / Style for Quickform input
+ */
 $attrsText      = array("size"=>"30");
 $attrsTextSmall = array("size"=>"10");
 $attrsText2     = array("size"=>"60");
@@ -88,8 +88,8 @@ $template       = "<table><tr><td>{unselected}</td><td align='center'>{add}<br /
     "{remove}</td><td>{selected}</td></tr></table>";
 
 /*
-    * Form begin
-    */
+ * Form begin
+ */
 $form = new HTML_QuickFormCustom('Form', 'post', "?p=".$p);
 if ($o == "a") {
     $form->addElement('header', 'title', _("Add a pool of services"));
@@ -100,16 +100,16 @@ if ($o == "a") {
 }
 
 /*
-    * pool basic information
-    */
+ * pool basic information
+ */
 $form->addElement('header', 'information', _("General Information"));
 $form->addElement('header', 'slotInformation', _("Slots Information"));
 $form->addElement('header', 'Notification', _("Notifications Information"));
 
 
 /*
-    * No possibility to change name and alias, because there's no interest
-    */
+ * No possibility to change name and alias, because there's no interest
+ */
 $form->addElement('text', 'pool_name', _("Name"), $attrsText);
 $form->addElement('text', 'pool_description', _("Description"), $attrsText);
 $form->addElement('text', 'pool_number', _("Number of Slots"), $attrsTextSmall);
@@ -120,8 +120,8 @@ $form->addElement('text', 'pool_args', _("arguments"), $attrsText2);
 $form->addElement('select', 'pool_service_template_id', _("Service template based"), $poolST);
 
 /*
-    * Further informations
-    */
+ * Further informations
+ */
 $form->addElement('header', 'furtherInfos', _("Additional Information"));
 $poolActivation[] = $form->createElement('radio', 'pool_activate', null, _("Enabled"), '1');
 $poolActivation[] = $form->createElement('radio', 'pool_activate', null, _("Disabled"), '0');
@@ -146,9 +146,9 @@ if (is_array($select)) {
     $select_pear->setValue($select_str);
 }
 
-/**
+/*
  * Form Rules
- **/
+ */
 function myReplace()
 {
     global $form;
@@ -172,10 +172,9 @@ if ($o != "mc") {
 }
 $form->setRequiredNote("<font style='color: red;'>*</font>&nbsp;" . _("Required fields"));
 
-
 /*
-    * Smarty template Init
-    */
+ * Smarty template Init
+ */
 $tpl = new Smarty();
 $tpl = initSmartyTpl($path, $tpl);
 
@@ -241,8 +240,8 @@ if ($valid && $action["action"]["action"]) {
     include $path . "listSlot.php";
 } else {
     /*
-        * Apply a template definition
-        */
+     * Apply a template definition
+     */
     $renderer = new HTML_QuickForm_Renderer_ArraySmarty($tpl);
     $renderer->setRequiredTemplate('{$label}&nbsp;<font color="red" size="1">*</font>');
     $renderer->setErrorTemplate('<font color="red">{$error}</font><br />{$html}');

@@ -51,14 +51,14 @@ $cG ? $dupNbr = $cG : $dupNbr = $cP;
 
 $search = isset($_POST['searchSlot']) ? htmlentities($_POST['searchSlot'], ENT_QUOTES) : null;
 
-    /*
-    * Path to the configuration dir
-    */
+/*
+ * Path to the configuration dir
+ */
 $path = "./modules/centreon-dsm/core/configuration/services/";
 
 /*
-    * PHP functions
-    */
+ * PHP functions
+ */
 require_once $path."DB-Func.php";
 require_once "./include/common/common-Func.php";
 
