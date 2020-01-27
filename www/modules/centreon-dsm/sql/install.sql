@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `mod_dsm_pool` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 --
--- Contraintes pour les tables exportées
+-- Contraintes pour les tables exportï¿½es
 --
 
 ALTER TABLE `mod_dsm_pool`
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS centreon_storage.`mod_dsm_cache` (
   `macros` text,
   `output` text,
   PRIMARY KEY (`cache_id`),
-  KEY `cache_mult_idx` (`host_id`,`id`,`cache_id`),
+  KEY `cache_host_id` (`host_id`),
   KEY `pool_prefix` (`pool_prefix`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
