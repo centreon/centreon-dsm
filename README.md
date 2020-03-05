@@ -1,7 +1,7 @@
 # Centreon DSM
 
-Centreon Dynamic Services Management (DSM) is an extension to manage alarms with
-in a similar fashion to an event logs system.
+Centreon Dynamic Services Management (DSM) is an extension to manage alarms in
+a similar fashion to an event logs system.
 
 
 ## Installation
