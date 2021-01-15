@@ -25,6 +25,7 @@ stage('Source') {
     source = readProperties file: 'source.properties'
     env.VERSION = "${source.VERSION}"
     env.RELEASE = "${source.RELEASE}"
+    env.SUMMARY = "${source.SUMMARY}"
     publishHTML([
       allowMissing: false,
       keepAll: true,
