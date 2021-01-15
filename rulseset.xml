@@ -4,7 +4,6 @@
 
     <exclude-pattern>vendor</exclude-pattern>
     <exclude-pattern>build</exclude-pattern>
-    <exclude-pattern>*\.(?!(php$))</exclude-pattern>
 
     <rule ref="PSR12"/>
     <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace">
@@ -15,10 +14,8 @@
 
     <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
         <exclude-pattern>www</exclude-pattern>
-        <exclude-pattern></exclude-pattern>
     </rule>
     <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
         <exclude-pattern>www</exclude-pattern>
-        <exclude-pattern></exclude-pattern>
     </rule>
 </ruleset>
