@@ -72,7 +72,8 @@ try {
         )
 
         if ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE')) {
-          withSonarQubeEnv('SonarQube') {
+          // Run sonarQube analysis
+          withSonarQubeEnv('SonarQubeDev') {
             sh "./centreon-build/jobs/dsm/${serie}/dsm-analysis.sh"
           }
         }
