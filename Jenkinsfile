@@ -71,11 +71,9 @@ try {
           trendChartType: 'NONE'
         )
 
-        if ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE')) {
-          // Run sonarQube analysis
-          withSonarQubeEnv('SonarQubeDev') {
-            sh "./centreon-build/jobs/dsm/${serie}/dsm-analysis.sh"
-          }
+        // Run sonarQube analysis
+        withSonarQubeEnv('SonarQubeDev') {
+          sh "./centreon-build/jobs/dsm/${serie}/dsm-analysis.sh"
         }
       }
     }
