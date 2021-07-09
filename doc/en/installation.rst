@@ -6,21 +6,22 @@ Installation
 On a central server
 ===================
 
-This part is to install **Centreon DSM** on a central server. Centreon DSM server
-and client will be installed on the main server.
+These instructions apply when installing the **Centreon DSM** extension on a
+central server. The Centreon DSM server and client packages must be installed on
+the main server.
 
-Run the command::
+Install the packages running the command::
 
-    # yum install centreon-dsm-server centreon-dsm-client
+    # yum install centreon-dsm
 
-After installing the rpm, you have to finish the module installation through the
-web frontend. Go to **dministration > Extensions > Manager** menu and search
-**dsm**:
+After installing the packages, you have to finish the installation of the module
+through the web-based GUI. Go to **Administration > Extensions > Manager** menu
+and search **dsm**:
 
 .. image:: /_static/installation/module-setup.png
    :align: center
 
-Your Centreon DSM Module is now installed.
+Your Centreon DSM module is now installed.
 
 .. image:: /_static/installation/module-setup-finished.png
    :align: center
@@ -29,12 +30,28 @@ Your Centreon DSM Module is now installed.
 On a poller
 ===========
 
-This part is to install **Centreon DSM** on a poller. Only client will be
-installed.
+These instructions apply when installing the **Centreon DSM** extension on a
+poller. Only the Centreon DSM client package must be installed on the poller.
 
-Run the command::
+Install the package running the command:
+
+::
 
     # yum install centreon-dsm-client
 
-You now have to create an access from the poller to the DBMS server on the
-**centreon_storage** database.
+You now have to configure MariaDB in order to enable the poller to connect to
+the central server databases **centreon** and **centreon_storage** using the
+user **centreon**.
+
+In order to do that, you have to connect to your MariaDB instance with the
+**root** user and issue the following commands:
+
+::
+
+  $ GRANT SELECT ON `centreon`.`*` TO 'centreon'@'POLLER_IP';
+  $ GRANT SELECT, INSERT, UPDATE ON `centreon_storage`.`*` TO 'centreon'@'POLLER_IP';
+
+Now, from your poller, try to connect to the central server with the MySQL
+client using the **centreon** user. If you have problems to configure the
+connection to MariaDB, please refer to the database documentation:
+https://mariadb.com/kb/en/grant/
