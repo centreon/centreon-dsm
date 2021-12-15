@@ -34,7 +34,7 @@
  *
  */
 
-require_once _CENTREON_PATH_ . "/www/class/centreonDB.class.php";
+require_once __DIR__ . "/../../../class/class/centreonDB.class.php";
 require_once __DIR__ . "/../../../class/exceptions/StatisticException.php";
 
 class CentreonDSMStats
