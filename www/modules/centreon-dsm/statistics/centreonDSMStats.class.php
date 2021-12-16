@@ -62,7 +62,7 @@ class CentreonDSMStats
         $data = [];
         try {
             $data = $this->getSlotsUsage();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new StatisticException(
                 "Unable to get Centreon DSM statistics: " . $e->getMessage(),
                 $e->getCode(),
