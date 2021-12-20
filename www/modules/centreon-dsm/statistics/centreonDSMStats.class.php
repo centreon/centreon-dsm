@@ -34,7 +34,7 @@
  *
  */
 
-require_once _CENTREON_PATH_ . "/www/class/centreonDB.class.php";
+require_once __DIR__ . "/../../../class/centreonDB.class.php";
 
 class CentreonDSMStats
 {
@@ -58,8 +58,16 @@ class CentreonDSMStats
      */
     public function getStats()
     {
-        $data = $this->getSlotsUsage();
-        return array('dsm' => $data);
+        try {
+            $data = $this->getSlotsUsage();
+            return array('dsm' => $data);
+        } catch (\Throwable $e) {
+            throw new Exception(
+                "Unable to get Centreon DSM statistics: " . $e->getMessage(),
+                $e->getCode(),
+                $e
+            );
+        }
     }
 
     /**
