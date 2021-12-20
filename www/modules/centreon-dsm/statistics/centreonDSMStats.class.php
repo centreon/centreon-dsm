@@ -54,7 +54,7 @@ class CentreonDSMStats
 
     /**
      * Get statistics of module
-     *
+     * @throws StatisticException
      * @return array
      */
     public function getStats()
