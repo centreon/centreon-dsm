@@ -205,18 +205,21 @@ sub load_slot_locks {
     $self->{cache_locks} = {};
     my $rows = [];
     while (1) {
-        my ($status, $sth) = $self->{db_centstorage}->query("SELECT `lock_id`, `host_id`, `service_id`, `internal_id`, `id`, `ctime`, `status` FROM mod_dsm_locks");
-        if ($status != -1) {
-            while (my $row = ( shift(@$rows) || # get row from cache, or reload cache:
-                       shift(@{$rows = $sth->fetchall_arrayref(undef, $self->{dsmd_config}->{sql_fetch})||[]})) ) {
-                $self->{cache_locks}->{$$row[1] . '.' . $$row[2]} = [$$row[0], $$row[3], $$row[4], $$row[5], $$row[6]];
+        my $moduleInfoDsm = $self->{db_centstorage}->query("select count(*) from centreon.modules_informations");
+        if ($moduleInfoDsm->fetchrow() != 0) {
+            my ($status, $sth) = $self->{db_centstorage}->query("SELECT `lock_id`, `host_id`, `service_id`, `internal_id`, `id`, `ctime`, `status` FROM mod_dsm_locks");
+            if ($status != -1) {
+                while (my $row = ( shift(@$rows) || # get row from cache, or reload cache:
+                        shift(@{$rows = $sth->fetchall_arrayref(undef, $self->{dsmd_config}->{sql_fetch})||[]})) ) {
+                    $self->{cache_locks}->{$$row[1] . '.' . $$row[2]} = [$$row[0], $$row[3], $$row[4], $$row[5], $$row[6]];
+                }
+                last;
             }
-            last;
+        } else {
+            $self->{logger}->writeLogError("Table mod_dsm_locks doesn't exists");
+            $self->check_signals();
+            sleep(1);
         }
-
-        $self->{logger}->writeLogError("Cannot load locks table");
-        $self->check_signals();
-        sleep(1);
     }
 }
 
