@@ -213,7 +213,8 @@ sub load_slot_locks {
             }
             last;
         }
-        $self->{logger}->writeLogError("Table mod_dsm_locks doesn't exists");
+
+        $self->{logger}->writeLogError("Cannot load locks table");
         $self->check_signals();
         sleep(1);
     }
