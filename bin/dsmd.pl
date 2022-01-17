@@ -200,26 +200,23 @@ sub submit_commands {
 }
 
 sub load_slot_locks {
+    my ($self, %options) = @_;
 
-    my ($self, %options) = @_;
-
-    $self->{cache_locks} = {};
-    my $rows = [];
-    while (1) {
-        my ($status, $sth) = $self->{db_centstorage}->query("SELECT `lock_id`, `host_id`, `service_id`, `internal_id`, `id`, `ctime`, `status` FROM mod_dsm_locks");
-        if ($status != -1) {
-            while (my $row = ( shift(@$rows) || # get row from cache, or reload cache:
-                       shift(@{$rows = $sth->fetchall_arrayref(undef, $self->{dsmd_config}->{sql_fetch})||[]})) ) {
-                $self->{cache_locks}->{$$row[1] . '.' . $$row[2]} = [$$row[0], $$row[3], $$row[4], $$row[5], $$row[6]];
-            }
-            last;
-        }
-
-        $self->{logger}->writeLogError("Cannot load locks table");
-        $self->check_signals();
-        sleep(1);
-    }
->>>>>>> parent of 31b0bec (update perl script)
+    $self->{cache_locks} = {};
+    my $rows = [];
+    while (1) {
+        my ($status, $sth) = $self->{db_centstorage}->query("SELECT `lock_id`, `host_id`, `service_id`, `internal_id`, `id`, `ctime`, `status` FROM mod_dsm_locks");
+        if ($status != -1) {
+            while (my $row = ( shift(@$rows) || # get row from cache, or reload cache:
+                    shift(@{$rows = $sth->fetchall_arrayref(undef, $self->{dsmd_config}->{sql_fetch})||[]})) ) {
+                $self->{cache_locks}->{$$row[1] . '.' . $$row[2]} = [$$row[0], $$row[3], $$row[4], $$row[5], $$row[6]];
+            }
+            last;
+        }
+        $self->{logger}->writeLogError("Table mod_dsm_locks doesn't exists");
+        $self->check_signals();
+        sleep(1);
+    }
 }
 
 sub get_alarms {
@@ -549,14 +546,19 @@ sub run {
     );
     $self->{db_centstorage}->connect();
 
-    $self->load_slot_locks();
+    my $moduleDsm = $self->{db_centstorage}->query("select count(name) from centreon.modules_informations where name = 'centreon-dsm'");
+    if ($moduleDsm->fetchrow() != 0) {
+        $self->load_slot_locks();
+    }
     while (1) {
         $self->check_signals();
         $self->clean_locks();
-        if ($self->get_alarms() == 0) {
-            $self->manage_alarms();
+        my $moduleDsmCacheExist = $self->{db_centstorage}->query("select count(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = 'centreon_storage' AND TABLE_NAME = 'mod_dsm_cache'");
+        if ($moduleDsmCacheExist->fetchrow() != 0) {
+            if ($self->get_alarms() == 0) {
+                $self->manage_alarms();
+            }
         }
-
         sleep(1);
     }
 }
