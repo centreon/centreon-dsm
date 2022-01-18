@@ -208,7 +208,7 @@ sub load_slot_locks {
         my ($status, $sth) = $self->{db_centstorage}->query("SELECT `lock_id`, `host_id`, `service_id`, `internal_id`, `id`, `ctime`, `status` FROM mod_dsm_locks");
         if ($status != -1) {
             while (my $row = ( shift(@$rows) || # get row from cache, or reload cache:
-                    shift(@{$rows = $sth->fetchall_arrayref(undef, $self->{dsmd_config}->{sql_fetch})||[]})) ) {
+                       shift(@{$rows = $sth->fetchall_arrayref(undef, $self->{dsmd_config}->{sql_fetch})||[]})) ) {
                 $self->{cache_locks}->{$$row[1] . '.' . $$row[2]} = [$$row[0], $$row[3], $$row[4], $$row[5], $$row[6]];
             }
             last;
@@ -532,6 +532,7 @@ sub manage_alarms {
 
 sub run {
     my ($self, %options) = @_;
+    my $dbCentreon = 'centreon';
 
     $self->SUPER::run();
     $self->{cmdDir} = $self->{centreon_config}->{VarLib} . "/centcore";
@@ -547,19 +548,17 @@ sub run {
     );
     $self->{db_centstorage}->connect();
 
-    my $moduleDsm = $self->{db_centstorage}->query("select count(name) from centreon.modules_informations where name = 'centreon-dsm'");
+    my $moduleDsm = $self->{db_centstorage}->query("select count(name) from " . $dbCentreon . ".modules_informations where name = 'centreon-dsm'");
     if ($moduleDsm->fetchrow() != 0) {
         $self->load_slot_locks();
     }
     while (1) {
         $self->check_signals();
         $self->clean_locks();
-        my $moduleDsmCacheExist = $self->{db_centstorage}->query("select count(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = 'centreon_storage' AND TABLE_NAME = 'mod_dsm_cache'");
-        if ($moduleDsmCacheExist->fetchrow() != 0) {
-            if ($self->get_alarms() == 0) {
-                $self->manage_alarms();
-            }
+        if ($self->get_alarms() == 0) {
+            $self->manage_alarms();
         }
+
         sleep(1);
     }
 }
