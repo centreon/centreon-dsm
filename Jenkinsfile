@@ -139,7 +139,7 @@ try {
     }
   }
 
-  if ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE')) {
+  if ((env.BUILD == 'RELEASE') || (env.BUILD == 'QA') || (env.BUILD == 'CI')) {
     stage('Delivery') {
       node {
         sh 'setup_centreon_build.sh'
