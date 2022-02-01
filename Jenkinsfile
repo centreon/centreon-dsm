@@ -1,60 +1,25 @@
+import groovy.json.JsonSlurper
+
 /*
 ** Variables.
 */
+properties([buildDiscarder(logRotator(numToKeepStr: '50'))])
 def serie = '21.04'
 def maintenanceBranch = "${serie}.x"
-def qaBranch = "dev-${serie}.x"
-env.REF_BRANCH = 'master'
-env.PROJECT='centreon-dsm'
 if (env.BRANCH_NAME.startsWith('release-')) {
   env.BUILD = 'RELEASE'
-} else if ((env.BRANCH_NAME == env.REF_BRANCH) || (env.BRANCH_NAME == maintenanceBranch)) {
+} else if ((env.BRANCH_NAME == 'master') || (env.BRANCH_NAME == maintenanceBranch)) {
   env.BUILD = 'REFERENCE'
-} else if ((env.BRANCH_NAME == 'develop') || (env.BRANCH_NAME == qaBranch)) {
-  env.BUILD = 'QA'
 } else {
   env.BUILD = 'CI'
-}
-
-def buildBranch = env.BRANCH_NAME
-if (env.CHANGE_BRANCH) {
-  buildBranch = env.CHANGE_BRANCH
-}
-
-/*
-** Functions
-*/
-def isStableBuild() {
-  return ((env.BUILD == 'REFERENCE') || (env.BUILD == 'QA'))
-}
-
-def checkoutCentreonBuild(buildBranch) {
-  def getCentreonBuildGitConfiguration = { branchName -> [
-    $class: 'GitSCM',
-    branches: [[name: "refs/heads/${branchName}"]],
-    doGenerateSubmoduleConfigurations: false,
-    userRemoteConfigs: [[
-      $class: 'UserRemoteConfig',
-      url: "ssh://git@github.com/centreon/centreon-build.git"
-    ]]
-  ]}
-
-  dir('centreon-build') {
-    try {
-      checkout(getCentreonBuildGitConfiguration(buildBranch))
-    } catch(e) {
-      echo "branch '${buildBranch}' does not exist in centreon-build, then fallback to master"
-      checkout(getCentreonBuildGitConfiguration('master'))
-    }
-  }
 }
 
 /*
 ** Pipeline code.
 */
-stage('Deliver sources') {
+stage('Source') {
   node {
-    checkoutCentreonBuild(buildBranch)
+    sh 'setup_centreon_build.sh'
     dir('centreon-dsm') {
       checkout scm
     }
@@ -74,11 +39,13 @@ stage('Deliver sources') {
 }
 
 try {
-  stage('Unit tests // RPM Packaging // Sonar analysis') {
-    parallel 'unit tests centos7': {
+  stage('Unit tests') {
+    parallel 'centos7': {
       node {
-        checkoutCentreonBuild(buildBranch)
+        sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/dsm/${serie}/dsm-unittest.sh centos7"
+        if (currentBuild.result == 'UNSTABLE')
+          currentBuild.result = 'FAILURE'
 
         if (env.CHANGE_ID) { // pull request to comment with coding style issues
           ViolationsToGitHub([
@@ -106,50 +73,80 @@ try {
           trendChartType: 'NONE'
         )
 
+        // Run sonarQube analysis
         withSonarQubeEnv('SonarQubeDev') {
           sh "./centreon-build/jobs/dsm/${serie}/dsm-analysis.sh"
         }
+      }
+    }
+    if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
+      error('Unit tests stage failure.');
+    }
+  }
+
+  // sonarQube step to get qualityGate result
+  stage('Quality gate') {
+    node {
+      def reportFilePath = "target/sonar/report-task.txt"
+      def reportTaskFileExists = fileExists "${reportFilePath}"
+      if (reportTaskFileExists) {
+        echo "Found report task file"
+        def taskProps = readProperties file: "${reportFilePath}"
+        echo "taskId[${taskProps['ceTaskId']}]"
         timeout(time: 10, unit: 'MINUTES') {
-          def qualityGate = waitForQualityGate()
-          if (qualityGate.status != 'OK') {
-            currentBuild.result = 'FAIL'
+          while (true) {
+            sleep 10
+            def taskStatusResult    =
+            sh(returnStdout: true, script: "curl -s -X GET -u ${authString} \'${sonarProps['sonar.host.url']}/api/ce/task?id=${taskProps['ceTaskId']}\'")
+            echo "taskStatusResult[${taskStatusResult}]"
+            def taskStatus  = new JsonSlurper().parseText(taskStatusResult).task.status
+            echo "taskStatus[${taskStatus}]"
+            // Status can be SUCCESS, ERROR, PENDING, or IN_PROGRESS. The last two indicate it's
+            // not done yet.
+            if (taskStatus != "IN_PROGRESS" && taskStatus != "PENDING") {
+              break;
+            }
+            def qualityGate = waitForQualityGate()
+            if (qualityGate.status != 'OK') {
+              currentBuild.result = 'FAIL'
+            }
           }
         }
       }
-    },
-    'RPM Packaging centos7': {
-      node {
-        checkoutCentreonBuild(buildBranch)
-        sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos7"
-        archiveArtifacts artifacts: 'rpms-centos7.tar.gz'
-        stash name: "rpms-centos7", includes: 'output/noarch/*.rpm'
-        sh 'rm -rf output'
+      if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
+        error("Quality gate failure: ${qualityGate.status}.");
       }
     }
-    //'RPM Packaging centos8': {
-    //  node {
-    //    checkoutCentreonBuild(buildBranch)
-    //    sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos8"
-    //    archiveArtifacts artifacts: 'rpms-centos8.tar.gz'
-    //    stash name: "rpms-centos8", includes: 'output/noarch/*.rpm'
-    //    sh 'rm -rf output'
-    //  }
-    //}
+  }
+
+  stage('Package') {
+    parallel 'centos7': {
+      node {
+        sh 'setup_centreon_build.sh'
+        sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos7"
+      }
+    }
+/*
+    'centos8': {
+      node {
+        sh 'setup_centreon_build.sh'
+        sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos8"
+      }
+    }
+*/
     if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
-      error('Unit tests // RPM Packaging // Sonar analysis stage failure.');
+      error('Package stage failure.')
     }
   }
 
   if ((env.BUILD == 'RELEASE') || (env.BUILD == 'QA') || (env.BUILD == 'CI')) {
     stage('Delivery') {
       node {
-        unstash 'rpms-centos7'
-        //unstash 'rpms-centos8'
-        checkoutCentreonBuild(buildBranch)
+        sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/dsm/${serie}/dsm-delivery.sh"
       }
       if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
-        error('Delivery stage failure');
+        error('Delivery stage failure.');
       }
     }
   }
