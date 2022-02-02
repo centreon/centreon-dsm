@@ -6,10 +6,15 @@ import groovy.json.JsonSlurper
 properties([buildDiscarder(logRotator(numToKeepStr: '50'))])
 def serie = '21.04'
 def maintenanceBranch = "${serie}.x"
+def qaBranch = "dev-${serie}.x"
+env.REF_BRANCH = 'master'
+env.PROJECT='centreon-dsm'
 if (env.BRANCH_NAME.startsWith('release-')) {
   env.BUILD = 'RELEASE'
-} else if ((env.BRANCH_NAME == 'master') || (env.BRANCH_NAME == maintenanceBranch)) {
+} else if ((env.BRANCH_NAME == env.REF_BRANCH) || (env.BRANCH_NAME == maintenanceBranch)) {
   env.BUILD = 'REFERENCE'
+} else if ((env.BRANCH_NAME == 'develop') || (env.BRANCH_NAME == qaBranch)) {
+  env.BUILD = 'QA'
 } else {
   env.BUILD = 'CI'
 }
@@ -124,6 +129,9 @@ try {
       node {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos7"
+        archiveArtifacts artifacts: 'rpms-centos7.tar.gz'
+        stash name: "rpms-centos7", includes: 'output/noarch/*.rpm'
+        sh 'rm -rf output'
       }
     }
 /*
@@ -139,9 +147,10 @@ try {
     }
   }
 
-  if ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE')) {
+  if ((env.BUILD == 'RELEASE') || (env.BUILD == 'QA') || (env.BUILD == 'CI')) {
     stage('Delivery') {
       node {
+        unstash 'rpms-centos7'
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/dsm/${serie}/dsm-delivery.sh"
       }
