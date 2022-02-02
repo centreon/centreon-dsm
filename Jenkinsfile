@@ -48,6 +48,9 @@ stage('RPM Packaging // Sonar analysis') {
     node {
       sh 'setup_centreon_build.sh'
       sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos7"
+      archiveArtifacts artifacts: 'rpms-centos7.tar.gz'
+      stash name: "rpms-centos7", includes: 'output/noarch/*.rpm'
+      sh 'rm -rf output'
     }
   },
   /*'centos8': {
@@ -75,6 +78,7 @@ stage('RPM Packaging // Sonar analysis') {
 if ((env.BUILD == 'RELEASE') || (env.BUILD == 'QA') || (env.BUILD == 'CI')) {
   stage('Delivery') {
     node {
+      unstash 'rpms-centos7'
       sh 'setup_centreon_build.sh'
       sh "./centreon-build/jobs/dsm/${serie}/dsm-delivery.sh"
     }
