@@ -49,7 +49,7 @@ stage('RPM Packaging // Sonar analysis') {
       sh 'setup_centreon_build.sh'
       sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos7"
     }
-  }
+  },
   /*'centos8': {
     node {
       sh 'setup_centreon_build.sh'
