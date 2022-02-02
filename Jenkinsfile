@@ -19,12 +19,38 @@ if (env.BRANCH_NAME.startsWith('release-')) {
   env.BUILD = 'CI'
 }
 
+def buildBranch = env.BRANCH_NAME
+  if (env.CHANGE_BRANCH) {
+    buildBranch = env.CHANGE_BRANCH
+  }
+
+def checkoutCentreonBuild(buildBranch) {
+  def getCentreonBuildGitConfiguration = { branchName -> [
+    $class: 'GitSCM',
+    branches: [[name: "refs/heads/${branchName}"]],
+    doGenerateSubmoduleConfigurations: false,
+    userRemoteConfigs: [[
+      $class: 'UserRemoteConfig',
+      url: "ssh://git@github.com/centreon/centreon-build.git"
+    ]]
+  ]}
+
+  dir('centreon-build') {
+    try {
+      checkout(getCentreonBuildGitConfiguration(buildBranch))
+    } catch(e) {
+      echo "branch '${buildBranch}' does not exist in centreon-build, then fallback to master"
+      checkout(getCentreonBuildGitConfiguration('master'))
+    }
+  }
+}
+
 /*
 ** Pipeline code.
 */
 stage('Source') {
   node {
-    sh 'setup_centreon_build.sh'
+    checkoutCentreonBuild(buildBranch)
     dir('centreon-dsm') {
       checkout scm
     }
@@ -47,7 +73,7 @@ try {
   stage('Unit tests') {
     parallel 'centos7': {
       node {
-        sh 'setup_centreon_build.sh'
+        checkoutCentreonBuild(buildBranch)
         sh "./centreon-build/jobs/dsm/${serie}/dsm-unittest.sh centos7"
         if (currentBuild.result == 'UNSTABLE')
           currentBuild.result = 'FAILURE'
@@ -127,7 +153,7 @@ try {
   stage('Package') {
     parallel 'centos7': {
       node {
-        sh 'setup_centreon_build.sh'
+        checkoutCentreonBuild(buildBranch)
         sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos7"
         archiveArtifacts artifacts: 'rpms-centos7.tar.gz'
         stash name: "rpms-centos7", includes: 'output/noarch/*.rpm'
@@ -137,7 +163,7 @@ try {
 /*
     'centos8': {
       node {
-        sh 'setup_centreon_build.sh'
+        checkoutCentreonBuild(buildBranch)
         sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos8"
       }
     }
@@ -151,7 +177,7 @@ try {
     stage('Delivery') {
       node {
         unstash 'rpms-centos7'
-        sh 'setup_centreon_build.sh'
+        checkoutCentreonBuild(buildBranch)
         sh "./centreon-build/jobs/dsm/${serie}/dsm-delivery.sh"
       }
       if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
