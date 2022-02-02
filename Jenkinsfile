@@ -58,6 +58,7 @@ stage('RPM Packaging // Sonar analysis') {
   }*/
   'sonar analysis': {
     node {
+      sh 'setup_centreon_build.sh'
       withSonarQubeEnv('SonarQubeDev') {
         sh "./centreon-build/jobs/dsm/${serie}/dsm-analysis.sh"
       }
