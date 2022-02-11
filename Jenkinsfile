@@ -1,9 +1,9 @@
 /*
 ** Variables.
 */
-def serie = '21.10'
-def maintenanceBranch = "${serie}.x"
-def qaBranch = "dev-${serie}.x"
+def serie = '22.04'
+def maintenanceBranch = "master"
+def qaBranch = "develop"
 env.REF_BRANCH = 'master'
 env.PROJECT='centreon-dsm'
 if (env.BRANCH_NAME.startsWith('release-')) {
@@ -125,16 +125,16 @@ try {
         stash name: "rpms-centos7", includes: 'output/noarch/*.rpm'
         sh 'rm -rf output'
       }
-    },
-    'RPM Packaging centos8': {
-      node {
-        checkoutCentreonBuild(buildBranch)
-        sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos8"
-        archiveArtifacts artifacts: 'rpms-centos8.tar.gz'
-        stash name: "rpms-centos8", includes: 'output/noarch/*.rpm'
-        sh 'rm -rf output'
-      }
     }
+    //'RPM Packaging centos8': {
+    //  node {
+    //    checkoutCentreonBuild(buildBranch)
+    //    sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos8"
+    //    archiveArtifacts artifacts: 'rpms-centos8.tar.gz'
+    //    stash name: "rpms-centos8", includes: 'output/noarch/*.rpm'
+    //    sh 'rm -rf output'
+    //  }
+    //}
     if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
       error('Unit tests // RPM Packaging // Sonar analysis stage failure.');
     }
@@ -144,7 +144,7 @@ try {
     stage('Delivery') {
       node {
         unstash 'rpms-centos7'
-        unstash 'rpms-centos8'
+        //unstash 'rpms-centos8'
         checkoutCentreonBuild(buildBranch)
         sh "./centreon-build/jobs/dsm/${serie}/dsm-delivery.sh"
       }
