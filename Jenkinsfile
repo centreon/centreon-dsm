@@ -125,15 +125,16 @@ try {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos7"
       }
-    }
-/*
-    'centos8': {
+    },
+    'RPM Packaging alma8': {
       node {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos8"
+        checkoutCentreonBuild(buildBranch)
+        sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh alma8"
+        archiveArtifacts artifacts: 'rpms-alma8.tar.gz'
+        stash name: "rpms-alma8", includes: 'output/noarch/*.rpm'
+        sh 'rm -rf output'
       }
     }
-*/
     if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
       error('Package stage failure.')
     }
@@ -142,7 +143,9 @@ try {
   if ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE')) {
     stage('Delivery') {
       node {
-        sh 'setup_centreon_build.sh'
+        unstash 'rpms-centos7'
+        unstash 'rpms-alma8'
+        checkoutCentreonBuild(buildBranch)
         sh "./centreon-build/jobs/dsm/${serie}/dsm-delivery.sh"
       }
       if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
