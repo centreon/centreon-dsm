@@ -159,15 +159,16 @@ try {
         stash name: "rpms-centos7", includes: 'output/noarch/*.rpm'
         sh 'rm -rf output'
       }
-    }
-/*
-    'centos8': {
+    },
+    'RPM Packaging alma8': {
       node {
         checkoutCentreonBuild(buildBranch)
-        sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh centos8"
+        sh "./centreon-build/jobs/dsm/${serie}/dsm-package.sh alma8"
+        archiveArtifacts artifacts: 'rpms-alma8.tar.gz'
+        stash name: "rpms-alma8", includes: 'output/noarch/*.rpm'
+        sh 'rm -rf output'
       }
     }
-*/
     if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
       error('Package stage failure.')
     }
@@ -177,6 +178,7 @@ try {
     stage('Delivery') {
       node {
         unstash 'rpms-centos7'
+        unstash 'rpms-alma8'
         checkoutCentreonBuild(buildBranch)
         sh "./centreon-build/jobs/dsm/${serie}/dsm-delivery.sh"
       }
