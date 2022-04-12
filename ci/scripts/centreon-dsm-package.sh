@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ex
 
-PROJECT="centreon-ha"
+PROJECT="centreon-dsm"
 
 if [ -z "$VERSION" -o -z "$RELEASE" -o -z "$DISTRIB" ] ; then
   echo "You need to specify VERSION / RELEASE / DISTRIB variables"
