@@ -18,7 +18,6 @@ Description:
 Depends:
   ${misc:Depends}, 
   ${shlibs:Depends},
-  perl:native,
   centreon-dsm-client,
   centreon-dsm-server
 
@@ -27,8 +26,7 @@ Architecture: any
 Description: Centreon-dsm client package
 Depends:
   ${misc:Depends}, 
-  ${shlibs:Depends},
-  perl:native
+  ${shlibs:Depends}
 
 Package: centreon-dsm-server
 Architecture: any
@@ -36,5 +34,4 @@ Description: Centreon-dsm server package
 Depends:
   ${misc:Depends}, 
   ${shlibs:Depends},
-  perl:native,
   centreon-web (>= 21.10.0~)
