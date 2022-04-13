@@ -37,4 +37,4 @@ Depends:
   ${misc:Depends}, 
   ${shlibs:Depends},
   perl:native,
-  centreon-web (>=21.10.0)
+  centreon-web (>= 21.10.0~)
