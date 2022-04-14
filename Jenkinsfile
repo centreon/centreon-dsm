@@ -141,8 +141,8 @@ try {
           checkout scm
         }
         sh 'docker run -i --entrypoint "/src/centreon-dsm/ci/scripts/centreon-dsm-package.sh" -w "/src" -v "$PWD:/src" -e "DISTRIB=Debian11" -e "VERSION=$VERSION" -e "RELEASE=$RELEASE" registry.centreon.com/centreon-debian11-dependencies:22.04'
-        stash name: 'Debian11', includes: 'Debian11/*.deb'
-        archiveArtifacts artifacts: "Debian11/*"
+        stash name: 'Debian11', includes: '*.deb'
+        archiveArtifacts artifacts: "*"
       }
     }
     if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
