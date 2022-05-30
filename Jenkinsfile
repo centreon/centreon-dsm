@@ -24,6 +24,27 @@ if (env.CHANGE_BRANCH) {
   buildBranch = env.CHANGE_BRANCH
 }
 
+def checkoutCentreonBuild(buildBranch) {
+  def getCentreonBuildGitConfiguration = { branchName -> [
+    $class: 'GitSCM',
+    branches: [[name: "refs/heads/${branchName}"]],
+    doGenerateSubmoduleConfigurations: false,
+    userRemoteConfigs: [[
+      $class: 'UserRemoteConfig',
+      url: "ssh://git@github.com/centreon/centreon-build.git"
+    ]]
+  ]}
+
+  dir('centreon-build') {
+    try {
+      checkout(getCentreonBuildGitConfiguration(buildBranch))
+    } catch(e) {
+      echo "branch '${buildBranch}' does not exist in centreon-build, then fallback to master"
+      checkout(getCentreonBuildGitConfiguration('master'))
+    }
+  }
+}
+
 /*
 ** Pipeline code.
 */
