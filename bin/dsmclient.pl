@@ -219,7 +219,7 @@ Extra custom to update (Example: 'macro1=value1|macro2=value2|macro3=value3').
 
 =item B<--pool-prefix>
 
-Slots to used for the host. If not set, we used the first pool of slots.
+Slot pool prefix linked to the host. If not set, the first pool of slots will be used.
 
 =back
 
@@ -228,5 +228,3 @@ Slots to used for the host. If not set, we used the first pool of slots.
 B<dsmclient.pl>.
 
 =cut
-
-
